@@ -3,363 +3,185 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GPS 到達測試系統</title>
+<title>GPS 到達測試系統 v2</title>
 <style>
-  /* ── 設計主題：工業儀表板風格，戶外高對比 ── */
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;500;700&display=swap');
 
   :root {
-    --bg:        #0d1117;
-    --surface:   #161b22;
-    --border:    #30363d;
-    --accent:    #00d4aa;
-    --danger:    #f85149;
-    --warn:      #d29922;
-    --text:      #e6edf3;
-    --muted:     #8b949e;
-    --arrived:   #238636;
-    --not-arr:   #da3633;
-    --mono:      'Share Tech Mono', monospace;
-    --sans:      'Noto Sans TC', sans-serif;
+    --bg:       #0d1117;
+    --surface:  #161b22;
+    --border:   #30363d;
+    --accent:   #00d4aa;
+    --danger:   #f85149;
+    --warn:     #d29922;
+    --info:     #388bfd;
+    --text:     #e6edf3;
+    --muted:    #8b949e;
+    --arrived:  #238636;
+    --not-arr:  #da3633;
+    --mono:     'Share Tech Mono', monospace;
+    --sans:     'Noto Sans TC', sans-serif;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100vh;
-  }
+  /* Header */
+  header { background: var(--surface); border-bottom: 2px solid var(--accent); padding: 14px 20px; }
+  .logo    { font-family: var(--mono); font-size: 1.25rem; color: var(--accent); letter-spacing: 2px; }
+  .subtitle{ font-size: 0.76rem; color: var(--muted); margin-top: 2px; }
 
-  /* ── 頂部標題列 ── */
-  header {
-    background: var(--surface);
-    border-bottom: 2px solid var(--accent);
-    padding: 14px 20px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  header .logo {
-    font-family: var(--mono);
-    font-size: 1.3rem;
-    color: var(--accent);
-    letter-spacing: 2px;
-  }
-  header .subtitle {
-    font-size: 0.78rem;
-    color: var(--muted);
-    margin-top: 2px;
-  }
-
-  /* ── 主要分頁 Tab ── */
-  .tabs {
-    display: flex;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-  }
-  .tab-btn {
-    padding: 12px 20px;
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font-family: var(--sans);
-    font-size: 0.88rem;
-    border-bottom: 3px solid transparent;
-    white-space: nowrap;
-    transition: all .2s;
-  }
-  .tab-btn.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-  }
-  .tab-btn:hover { color: var(--text); }
-
-  .tab-panel { display: none; padding: 20px; max-width: 860px; margin: 0 auto; }
+  /* Tabs */
+  .tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .tab-btn { padding: 11px 18px; border: none; background: transparent; color: var(--muted); cursor: pointer; font-family: var(--sans); font-size: 0.86rem; border-bottom: 3px solid transparent; white-space: nowrap; transition: all .2s; }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-btn:hover  { color: var(--text); }
+  .tab-panel { display: none; padding: 18px; max-width: 960px; margin: 0 auto; }
   .tab-panel.active { display: block; }
 
-  /* ── 通用卡片 ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 18px;
-    margin-bottom: 16px;
-  }
-  .card-title {
-    font-size: 0.78rem;
-    font-family: var(--mono);
-    color: var(--accent);
-    letter-spacing: 1px;
-    margin-bottom: 14px;
-    text-transform: uppercase;
-  }
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+  .card-title { font-size: 0.75rem; font-family: var(--mono); color: var(--accent); letter-spacing: 1px; margin-bottom: 12px; text-transform: uppercase; }
 
-  /* ── 表單元素 ── */
-  label { font-size: 0.82rem; color: var(--muted); display: block; margin-bottom: 4px; }
-  input, select, textarea {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 0.9rem;
-    padding: 9px 12px;
-    margin-bottom: 12px;
-    outline: none;
-    transition: border-color .2s;
-  }
+  /* Forms */
+  label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 3px; }
+  input, select, textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-family: var(--sans); font-size: 0.88rem; padding: 8px 11px; margin-bottom: 10px; outline: none; transition: border-color .2s; }
   input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-  textarea { resize: vertical; height: 90px; font-family: var(--mono); font-size: 0.78rem; }
+  input[readonly] { color: var(--muted); cursor: default; }
+  textarea { resize: vertical; height: 80px; font-family: var(--mono); font-size: 0.76rem; }
   select option { background: var(--surface); }
+  .form-row  { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media(max-width:580px){ .form-row,.form-row3 { grid-template-columns: 1fr; } }
 
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  @media (max-width: 560px) { .form-row { grid-template-columns: 1fr; } }
-
-  /* ── 按鈕 ── */
-  .btn {
-    border: none; border-radius: 6px;
-    cursor: pointer; font-family: var(--sans);
-    font-size: 0.88rem; font-weight: 500;
-    padding: 10px 18px; transition: all .15s;
-  }
-  .btn-primary {
-    background: var(--accent); color: #0d1117;
-  }
+  /* Buttons */
+  .btn { border: none; border-radius: 6px; cursor: pointer; font-family: var(--sans); font-size: 0.86rem; font-weight: 500; padding: 9px 16px; transition: all .15s; }
+  .btn-primary { background: var(--accent); color: #0d1117; }
   .btn-primary:hover { filter: brightness(1.1); }
   .btn-danger  { background: var(--danger); color: #fff; }
-  .btn-warn    { background: var(--warn);   color: #0d1117; }
+  .btn-info    { background: var(--info);   color: #fff; }
   .btn-ghost   { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
-  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-ghost-r { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+  .btn:disabled{ opacity: .4; cursor: not-allowed; }
   .btn-sm { padding: 6px 12px; font-size: 0.78rem; }
+  .btn-xs { padding: 3px 8px;  font-size: 0.72rem; }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
-  /* ── GPS 打卡核心介面 ── */
-  .gps-panel {
-    text-align: center;
-    padding: 10px 0 20px;
-  }
-  .punch-btn {
-    width: 160px; height: 160px;
-    border-radius: 50%;
-    border: 4px solid var(--accent);
-    background: radial-gradient(circle at 40% 35%, #1a3a32, #0a1f18);
-    color: var(--accent);
-    font-family: var(--mono);
-    font-size: 1rem;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: all .2s;
-    box-shadow: 0 0 30px rgba(0,212,170,.15);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 6px;
-    margin: 0 auto 20px;
-  }
-  .punch-btn:hover:not(:disabled) {
-    box-shadow: 0 0 50px rgba(0,212,170,.4);
-    transform: scale(1.04);
-  }
-  .punch-btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
-  .punch-btn .icon { font-size: 2.2rem; }
+  /* GPS punch */
+  .gps-panel { text-align: center; padding: 8px 0 18px; }
+  .punch-btn { width: 150px; height: 150px; border-radius: 50%; border: 4px solid var(--accent); background: radial-gradient(circle at 40% 35%, #1a3a32, #0a1f18); color: var(--accent); font-family: var(--mono); font-size: .95rem; letter-spacing: 1px; cursor: pointer; transition: all .2s; box-shadow: 0 0 28px rgba(0,212,170,.15); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; margin: 0 auto 18px; }
+  .punch-btn:hover:not(:disabled){ box-shadow: 0 0 50px rgba(0,212,170,.4); transform: scale(1.04); }
+  .punch-btn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+  .punch-btn .icon { font-size: 2rem; }
 
-  /* ── 結果顯示 ── */
-  .result-badge {
-    display: inline-block;
-    padding: 10px 28px;
-    border-radius: 30px;
-    font-size: 1.1rem;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin-bottom: 14px;
-  }
-  .result-badge.arrived   { background: var(--arrived); color: #fff; }
-  .result-badge.not-arr   { background: var(--not-arr); color: #fff; }
-  .result-badge.pending   { background: var(--border);  color: var(--muted); }
+  /* Result badge */
+  .result-badge { display: inline-block; padding: 9px 26px; border-radius: 28px; font-size: 1.05rem; font-weight: 700; letter-spacing: 1px; margin-bottom: 12px; }
+  .result-badge.arrived { background: var(--arrived); color:#fff; }
+  .result-badge.not-arr { background: var(--not-arr); color:#fff; }
+  .result-badge.pending { background: var(--border);  color: var(--muted); }
 
-  /* ── 儀表數字 ── */
-  .meter-row {
-    display: flex; gap: 12px; justify-content: center;
-    flex-wrap: wrap; margin-bottom: 12px;
-  }
-  .meter {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 18px;
-    text-align: center;
-    min-width: 120px;
-  }
-  .meter .val {
-    font-family: var(--mono);
-    font-size: 1.3rem;
-    color: var(--accent);
-  }
-  .meter .lbl { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  /* Meters */
+  .meter-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; }
+  .meter { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 16px; text-align: center; min-width: 110px; }
+  .meter .val { font-family: var(--mono); font-size: 1.2rem; color: var(--accent); }
+  .meter .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
 
-  /* ── 記錄列表 ── */
-  .record-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  .record-table th {
-    background: var(--bg);
-    color: var(--muted);
-    padding: 8px 10px;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  .record-table td {
-    padding: 9px 10px;
-    border-bottom: 1px solid var(--border);
-    font-family: var(--mono);
-    font-size: 0.78rem;
-  }
-  .record-table tr:hover td { background: rgba(255,255,255,.03); }
-  .badge-ok  { color: #3fb950; }
-  .badge-ng  { color: var(--danger); }
+  /* Data table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  .data-table th { background: var(--bg); color: var(--muted); padding: 7px 9px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .data-table td { padding: 8px 9px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .data-table td.mono { font-family: var(--mono); font-size: 0.76rem; }
+  .data-table tr:hover td { background: rgba(255,255,255,.025); }
+  .badge-ok { color: #3fb950; font-weight: 700; }
+  .badge-ng { color: var(--danger); font-weight: 700; }
 
-  /* ── XML 編輯區 ── */
-  .xml-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-  .status-bar {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    color: var(--muted);
-    min-height: 36px;
-    margin-top: 8px;
-  }
-  .status-bar.ok   { color: var(--accent); border-color: var(--accent); }
-  .status-bar.err  { color: var(--danger); border-color: var(--danger); }
+  /* Status bar */
+  .status-bar { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 11px; font-family: var(--mono); font-size: 0.76rem; color: var(--muted); min-height: 34px; margin-top: 8px; word-break: break-all; }
+  .status-bar.ok  { color: var(--accent); border-color: var(--accent); }
+  .status-bar.err { color: var(--danger); border-color: var(--danger); }
 
-  /* ── 提示方塊 ── */
-  .info-box {
-    background: rgba(0,212,170,.07);
-    border-left: 3px solid var(--accent);
-    border-radius: 4px;
-    padding: 10px 14px;
-    font-size: 0.82rem;
-    color: var(--muted);
-    margin-bottom: 14px;
-  }
+  /* Info box */
+  .info-box { background: rgba(0,212,170,.07); border-left: 3px solid var(--accent); border-radius: 4px; padding: 9px 13px; font-size: 0.8rem; color: var(--muted); margin-bottom: 12px; }
   .info-box b { color: var(--text); }
 
-  /* ── 進度環 ── */
-  .spinner {
-    width: 22px; height: 22px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin .7s linear infinite;
-    display: inline-block; vertical-align: middle;
-  }
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 22px; width: 94%; max-width: 580px; max-height: 92vh; overflow-y: auto; }
+  .modal-title { font-family: var(--mono); color: var(--accent); font-size: 0.9rem; margin-bottom: 16px; letter-spacing: 1px; }
+
+  /* Geo row */
+  .geo-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 10px; }
+  .geo-row input { margin-bottom: 0; flex: 1; }
+
+  /* Threshold badge */
+  .threshold-badge { display: inline-block; background: rgba(0,212,170,.15); color: var(--accent); border-radius: 4px; padding: 2px 8px; font-size: 0.72rem; font-family: var(--mono); }
+
+  /* Spinner */
+  .spinner { width: 18px; height: 18px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; display: inline-block; vertical-align: middle; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
+  .text-muted { color: var(--muted); font-size: 0.78rem; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <div class="logo">📡 GPS ARRIVAL TEST</div>
-    <div class="subtitle">到達位置驗證系統 ── 台灣地區適用</div>
-  </div>
+  <div class="logo">📡 GPS ARRIVAL TEST <span style="font-size:.68rem;color:var(--muted)"> v2</span></div>
+  <div class="subtitle">到達位置驗證系統 ── 各地址獨立距離閾值 ── OpenStreetMap 自動定座標</div>
 </header>
 
-<!-- ══ 分頁列 ══ -->
 <div class="tabs">
-  <button class="tab-btn active" onclick="switchTab('tab-test')">🎯 執行測試</button>
-  <button class="tab-btn" onclick="switchTab('tab-records')">📋 測試記錄</button>
-  <button class="tab-btn" onclick="switchTab('tab-requesters')">👤 需求者資料</button>
-  <button class="tab-btn" onclick="switchTab('tab-testers')">🧑‍💼 測試者資料</button>
-  <button class="tab-btn" onclick="switchTab('tab-export')">💾 匯出 XML</button>
+  <button class="tab-btn active"  onclick="switchTab('tab-test',this)">🎯 執行測試</button>
+  <button class="tab-btn"         onclick="switchTab('tab-records',this)">📋 測試記錄</button>
+  <button class="tab-btn"         onclick="switchTab('tab-requesters',this)">👤 需求者管理</button>
+  <button class="tab-btn"         onclick="switchTab('tab-testers',this)">🧑‍💼 測試者管理</button>
+  <button class="tab-btn"         onclick="switchTab('tab-export',this)">💾 匯出 XML</button>
 </div>
 
 <!-- ══ Tab 1: 執行測試 ══ -->
 <div id="tab-test" class="tab-panel active">
-
   <div class="card">
     <div class="card-title">▸ 選擇人員與任務</div>
     <div class="form-row">
       <div>
         <label>測試者員工編號</label>
-        <select id="sel-tester">
-          <option value="">── 請選擇 ──</option>
-        </select>
+        <select id="sel-tester"><option value="">── 請選擇 ──</option></select>
       </div>
       <div>
         <label>需求者需求編號</label>
-        <select id="sel-request">
-          <option value="">── 請選擇 ──</option>
-        </select>
+        <select id="sel-request" onchange="onRequestChange()"><option value="">── 請選擇 ──</option></select>
       </div>
     </div>
   </div>
 
-  <!-- 需求者資訊顯示 -->
   <div class="card hidden" id="req-info-card">
     <div class="card-title">▸ 目標地點資訊</div>
     <div class="form-row">
-      <div>
-        <label>需求者姓名</label>
-        <input type="text" id="info-name" readonly>
-      </div>
-      <div>
-        <label>地址</label>
-        <input type="text" id="info-addr" readonly>
-      </div>
-      <div>
-        <label>目標緯度</label>
-        <input type="text" id="info-lat" readonly>
-      </div>
-      <div>
-        <label>目標經度</label>
-        <input type="text" id="info-lon" readonly>
-      </div>
+      <div><label>需求者姓名／機構</label><input type="text" id="info-name" readonly></div>
+      <div><label>地址</label><input type="text" id="info-addr" readonly></div>
+      <div><label>目標緯度</label><input type="text" id="info-lat" readonly></div>
+      <div><label>目標經度</label><input type="text" id="info-lon" readonly></div>
     </div>
+    <span class="text-muted">到達判定距離：</span>
+    <span class="threshold-badge" id="info-threshold">─ 公尺</span>
   </div>
 
-  <!-- GPS 打卡 -->
   <div class="card">
     <div class="card-title">▸ GPS 打卡</div>
     <div class="gps-panel">
       <button class="punch-btn" id="punch-btn" disabled onclick="doPunch()">
-        <span class="icon">📍</span>
-        <span>立即打卡</span>
+        <span class="icon">📍</span><span>立即打卡</span>
       </button>
-
-      <div id="result-area">
-        <div class="result-badge pending">尚未打卡</div>
+      <div id="result-area"><div class="result-badge pending">尚未打卡</div></div>
+      <div class="meter-row hidden" id="meters">
+        <div class="meter"><div class="val" id="m-dist">─</div><div class="lbl">距離 (公尺)</div></div>
+        <div class="meter"><div class="val" id="m-thresh">─</div><div class="lbl">閾值 (公尺)</div></div>
+        <div class="meter"><div class="val" id="m-mylat">─</div><div class="lbl">我的緯度</div></div>
+        <div class="meter"><div class="val" id="m-mylon">─</div><div class="lbl">我的經度</div></div>
+        <div class="meter"><div class="val" id="m-time">─</div><div class="lbl">打卡時間</div></div>
       </div>
-
-      <div class="meter-row" id="meters" style="display:none">
-        <div class="meter">
-          <div class="val" id="m-dist">─</div>
-          <div class="lbl">距離 (公尺)</div>
-        </div>
-        <div class="meter">
-          <div class="val" id="m-mylat">─</div>
-          <div class="lbl">我的緯度</div>
-        </div>
-        <div class="meter">
-          <div class="val" id="m-mylon">─</div>
-          <div class="lbl">我的經度</div>
-        </div>
-        <div class="meter">
-          <div class="val" id="m-time">─</div>
-          <div class="lbl">打卡時間</div>
-        </div>
-      </div>
-
       <div class="status-bar" id="punch-status">請先選擇測試者與需求者編號</div>
     </div>
   </div>
@@ -369,89 +191,152 @@
 <div id="tab-records" class="tab-panel">
   <div class="card">
     <div class="card-title">▸ 測試記錄列表</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <div class="btn-row" style="margin-bottom:12px">
       <button class="btn btn-ghost btn-sm" onclick="renderRecords()">🔄 重新整理</button>
-      <button class="btn btn-danger btn-sm" onclick="clearRecords()">🗑 清除所有記錄</button>
+      <button class="btn btn-ghost-r btn-sm" onclick="clearRecords()">🗑 清除全部</button>
     </div>
     <div style="overflow-x:auto">
-      <table class="record-table">
+      <table class="data-table">
         <thead>
-          <tr>
-            <th>記錄編號</th>
-            <th>測試者</th>
-            <th>需求者編號</th>
-            <th>日期</th>
-            <th>時間</th>
-            <th>距離(m)</th>
-            <th>結果</th>
-          </tr>
+          <tr><th>記錄編號</th><th>測試者</th><th>需求者編號</th><th>日期</th><th>時間</th><th>距離(m)</th><th>閾值(m)</th><th>結果</th></tr>
         </thead>
         <tbody id="records-tbody">
-          <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">尚無記錄</td></tr>
+          <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">尚無記錄</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </div>
 
-<!-- ══ Tab 3: 需求者資料 ══ -->
+<!-- ══ Tab 3: 需求者管理 ══ -->
 <div id="tab-requesters" class="tab-panel">
-  <div class="info-box">
-    <b>說明：</b>在此編輯需求者 XML 資料後，按「套用」即生效。
-    格式：<code>&lt;requesters&gt;&lt;requester&gt;...&lt;/requester&gt;&lt;/requesters&gt;</code>
+  <div class="btn-row" style="margin-bottom:14px">
+    <button class="btn btn-primary" onclick="openRequesterModal(null)">＋ 新增需求者</button>
   </div>
   <div class="card">
-    <div class="card-title">▸ 需求者 XML</div>
-    <textarea id="xml-requesters"></textarea>
-    <div class="xml-actions">
-      <button class="btn btn-primary btn-sm" onclick="applyXML('requesters')">✅ 套用</button>
-      <button class="btn btn-ghost btn-sm" onclick="resetXML('requesters')">↺ 還原預設</button>
+    <div class="card-title">▸ 需求者列表</div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
+          <tr><th>需求編號</th><th>姓名／機構</th><th>地址</th><th>家用電話</th><th>手機</th><th>緯度</th><th>經度</th><th>閾值(m)</th><th>操作</th></tr>
+        </thead>
+        <tbody id="req-tbody"></tbody>
+      </table>
     </div>
-    <div class="status-bar" id="status-requesters">尚未套用</div>
   </div>
 </div>
 
-<!-- ══ Tab 4: 測試者資料 ══ -->
+<!-- ══ Tab 4: 測試者管理 ══ -->
 <div id="tab-testers" class="tab-panel">
-  <div class="info-box">
-    <b>說明：</b>在此編輯測試者 XML 資料後，按「套用」即生效。
-    格式：<code>&lt;testers&gt;&lt;tester&gt;...&lt;/tester&gt;&lt;/testers&gt;</code>
+  <div class="btn-row" style="margin-bottom:14px">
+    <button class="btn btn-primary" onclick="openTesterModal(null)">＋ 新增測試者</button>
   </div>
   <div class="card">
-    <div class="card-title">▸ 測試者 XML</div>
-    <textarea id="xml-testers"></textarea>
-    <div class="xml-actions">
-      <button class="btn btn-primary btn-sm" onclick="applyXML('testers')">✅ 套用</button>
-      <button class="btn btn-ghost btn-sm" onclick="resetXML('testers')">↺ 還原預設</button>
+    <div class="card-title">▸ 測試者列表</div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
+          <tr><th>員工編號</th><th>姓名</th><th>操作</th></tr>
+        </thead>
+        <tbody id="tester-tbody"></tbody>
+      </table>
     </div>
-    <div class="status-bar" id="status-testers">尚未套用</div>
   </div>
 </div>
 
 <!-- ══ Tab 5: 匯出 XML ══ -->
 <div id="tab-export" class="tab-panel">
   <div class="card">
-    <div class="card-title">▸ 匯出測試記錄 XML</div>
-    <div class="info-box">
-      點擊下方按鈕可將 <b>測試記錄</b> 匯出為標準 XML 檔案，可供後端系統匯入使用。
-    </div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="exportXML('records')">⬇ 下載 test_records.xml</button>
-      <button class="btn btn-ghost" onclick="exportXML('requesters')">⬇ 下載 requesters.xml</button>
-      <button class="btn btn-ghost" onclick="exportXML('testers')">⬇ 下載 testers.xml</button>
+    <div class="card-title">▸ 匯出檔案</div>
+    <div class="info-box">點擊下方按鈕將各資料匯出為標準 XML 檔案，可供後端系統匯入使用。</div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="exportXML('records')">⬇ test_records.xml</button>
+      <button class="btn btn-ghost"   onclick="exportXML('requesters')">⬇ requesters.xml</button>
+      <button class="btn btn-ghost"   onclick="exportXML('testers')">⬇ testers.xml</button>
     </div>
     <div class="status-bar" id="status-export" style="margin-top:14px">就緒</div>
-
-    <div style="margin-top:16px">
-      <div class="card-title">▸ 記錄 XML 預覽</div>
-      <textarea id="preview-xml" readonly style="height:200px"></textarea>
-    </div>
+    <hr class="divider">
+    <div class="card-title">▸ 記錄 XML 預覽</div>
+    <textarea id="preview-xml" readonly style="height:220px"></textarea>
   </div>
 </div>
 
-<!-- ══════════════ JavaScript ══════════════ -->
+<!-- ══ Modal: 需求者新增/編輯 ══ -->
+<div class="modal-overlay" id="modal-requester">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-req-title">▸ 新增需求者</div>
+
+    <label>需求編號（YYYYMMDD+3位流水號）</label>
+    <input type="text" id="req-f-id" placeholder="系統自動產生，可手動覆寫">
+
+    <label>姓名 ／ 機構名稱</label>
+    <input type="text" id="req-f-name" placeholder="王大明 或 臺北市立聯合醫院忠孝院區">
+
+    <label>地址</label>
+    <div class="geo-row">
+      <input type="text" id="req-f-addr" placeholder="輸入完整地址後，按右側按鈕自動查詢經緯度">
+      <button class="btn btn-info btn-sm" id="geo-btn" onclick="geocodeAddress()">🗺 查座標</button>
+    </div>
+    <div class="status-bar" id="geo-status">輸入完整地址後按「查座標」，系統將自動填入經緯度</div>
+
+    <div class="form-row" style="margin-top:10px">
+      <div>
+        <label>地址緯度（自動填入或手動輸入）</label>
+        <input type="number" id="req-f-lat" step="0.000001" placeholder="25.052300">
+      </div>
+      <div>
+        <label>地址經度（自動填入或手動輸入）</label>
+        <input type="number" id="req-f-lon" step="0.000001" placeholder="121.587700">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label>家用電話</label>
+        <input type="text" id="req-f-home" placeholder="(02)2786-1288">
+      </div>
+      <div>
+        <label>手機號碼（無則留空）</label>
+        <input type="text" id="req-f-mobile" placeholder="0912-345-678">
+      </div>
+    </div>
+
+    <label>到達判定距離閾值（公尺）</label>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <input type="number" id="req-f-threshold" value="15" min="1" max="9999" style="width:120px;margin-bottom:0">
+      <span class="text-muted">公尺以內視為到達<br>（住家小地址建議 10~15m；大院區建議 30~100m）</span>
+    </div>
+
+    <hr class="divider">
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveRequester()">✅ 儲存</button>
+      <button class="btn btn-ghost"   onclick="closeModal('modal-requester')">取消</button>
+    </div>
+    <div class="status-bar" id="modal-req-status" style="margin-top:10px"> </div>
+  </div>
+</div>
+
+<!-- ══ Modal: 測試者新增/編輯 ══ -->
+<div class="modal-overlay" id="modal-tester">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-title" id="modal-tst-title">▸ 新增測試者</div>
+    <label>員工編號（例如：N0960）</label>
+    <input type="text" id="tst-f-id" placeholder="N0960">
+    <label>姓名</label>
+    <input type="text" id="tst-f-name" placeholder="吳玉柱">
+    <hr class="divider">
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveTester()">✅ 儲存</button>
+      <button class="btn btn-ghost"   onclick="closeModal('modal-tester')">取消</button>
+    </div>
+    <div class="status-bar" id="modal-tst-status" style="margin-top:10px"> </div>
+  </div>
+</div>
+
 <script>
-/* ─── 預設 XML 資料 ─── */
+/* ════════════════════════════════
+   預設 XML（各地址有 distanceThreshold）
+════════════════════════════════ */
 const DEFAULT_REQUESTERS_XML = `<requesters>
   <requester>
     <requestId>202401010001</requestId>
@@ -461,6 +346,7 @@ const DEFAULT_REQUESTERS_XML = `<requesters>
     <homePhone>02-2723-4567</homePhone>
     <longitude>121.56540</longitude>
     <latitude>25.03300</latitude>
+    <distanceThreshold>15</distanceThreshold>
   </requester>
   <requester>
     <requestId>202401010002</requestId>
@@ -470,6 +356,7 @@ const DEFAULT_REQUESTERS_XML = `<requesters>
     <homePhone>02-2361-8888</homePhone>
     <longitude>121.51972</longitude>
     <latitude>25.04776</latitude>
+    <distanceThreshold>15</distanceThreshold>
   </requester>
   <requester>
     <requestId>202401010003</requestId>
@@ -479,6 +366,7 @@ const DEFAULT_REQUESTERS_XML = `<requesters>
     <homePhone>04-2228-9000</homePhone>
     <longitude>120.67260</longitude>
     <latitude>24.14870</latitude>
+    <distanceThreshold>15</distanceThreshold>
   </requester>
   <requester>
     <requestId>202401010004</requestId>
@@ -488,456 +376,499 @@ const DEFAULT_REQUESTERS_XML = `<requesters>
     <homePhone>(02)2786-1288</homePhone>
     <longitude>121.58770</longitude>
     <latitude>25.05230</latitude>
+    <distanceThreshold>50</distanceThreshold>
   </requester>
 </requesters>`;
 
 const DEFAULT_TESTERS_XML = `<testers>
-  <tester>
-    <employeeId>N0960</employeeId>
-    <name>吳玉柱</name>
-  </tester>
-  <tester>
-    <employeeId>N0961</employeeId>
-    <name>林美玲</name>
-  </tester>
-  <tester>
-    <employeeId>N0962</employeeId>
-    <name>張國慶</name>
-  </tester>
+  <tester><employeeId>N0960</employeeId><name>吳玉柱</name></tester>
+  <tester><employeeId>N0961</employeeId><name>林美玲</name></tester>
+  <tester><employeeId>N0962</employeeId><name>張國慶</name></tester>
 </testers>`;
 
-/* ─── 到達判定閾值 ─── */
-const ARRIVE_THRESHOLD_M = 15; // 15公尺以內算到達
+/* ════ 狀態 ════ */
+let requesters = [], testers = [], records = [], serialMap = {};
+let editingReqId = null, editingTstId = null;
 
-/* ─── 狀態變數 ─── */
-let requesters = []; // 需求者陣列
-let testers    = []; // 測試者陣列
-let records    = []; // 測試記錄陣列（存 localStorage）
-let serialMap  = {}; // 當日流水號 { YYYYMMDD: number }
-
-/* ══════════════════════════════════════════
-   初始化：載入資料
-══════════════════════════════════════════ */
+/* ════════════════════════════════
+   初始化
+════════════════════════════════ */
 function init() {
-  // 載入 localStorage 中的 XML，若無則用預設值
   const rXml = localStorage.getItem('xml_requesters') || DEFAULT_REQUESTERS_XML;
   const tXml = localStorage.getItem('xml_testers')    || DEFAULT_TESTERS_XML;
-
-  document.getElementById('xml-requesters').value = rXml;
-  document.getElementById('xml-testers').value    = tXml;
-
   parseRequesters(rXml);
   parseTesters(tXml);
-
-  // 載入記錄
   try {
     records = JSON.parse(localStorage.getItem('test_records') || '[]');
-    // 重建流水號 map
     records.forEach(r => {
-      const d = r.recordId.substring(0, 8);
-      const n = parseInt(r.recordId.substring(8));
+      const d = r.recordId.substring(0,8), n = parseInt(r.recordId.substring(8));
       if (!serialMap[d] || serialMap[d] < n) serialMap[d] = n;
     });
   } catch(e) { records = []; }
 
+  document.getElementById('sel-tester').addEventListener('change', checkReady);
+
+  // Modal 背景點擊關閉
+  document.querySelectorAll('.modal-overlay').forEach(el =>
+    el.addEventListener('click', e => { if (e.target===el) el.classList.remove('open'); })
+  );
+
   renderDropdowns();
+  renderRequesterTable();
+  renderTesterTable();
   renderRecords();
 }
 
-/* ══════════════════════════════════════════
-   XML 解析工具
-══════════════════════════════════════════ */
-function parseXML(xmlStr) {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(xmlStr, 'text/xml');
+/* ════════════════════════════════
+   XML 解析
+════════════════════════════════ */
+function parseXML(str) {
+  const doc = new DOMParser().parseFromString(str, 'text/xml');
   if (doc.querySelector('parsererror')) throw new Error('XML 格式錯誤');
   return doc;
 }
-
-function getText(el, tag) {
-  const node = el.querySelector(tag);
-  return node ? node.textContent.trim() : '';
-}
+function gt(el, tag, def='') { const n=el.querySelector(tag); return n ? n.textContent.trim() : def; }
 
 function parseRequesters(xml) {
   const doc = parseXML(xml);
   requesters = Array.from(doc.querySelectorAll('requester')).map(r => ({
-    requestId:  getText(r, 'requestId'),
-    name:       getText(r, 'name'),
-    address:    getText(r, 'address'),
-    mobile:     getText(r, 'mobile'),
-    homePhone:  getText(r, 'homePhone'),
-    longitude:  parseFloat(getText(r, 'longitude')),
-    latitude:   parseFloat(getText(r, 'latitude')),
+    requestId:         gt(r,'requestId'),
+    name:              gt(r,'name'),
+    address:           gt(r,'address'),
+    mobile:            gt(r,'mobile'),
+    homePhone:         gt(r,'homePhone'),
+    longitude:         parseFloat(gt(r,'longitude')) || 0,
+    latitude:          parseFloat(gt(r,'latitude'))  || 0,
+    distanceThreshold: parseFloat(gt(r,'distanceThreshold')) || 15,
   }));
 }
-
 function parseTesters(xml) {
   const doc = parseXML(xml);
   testers = Array.from(doc.querySelectorAll('tester')).map(t => ({
-    employeeId: getText(t, 'employeeId'),
-    name:       getText(t, 'name'),
+    employeeId: gt(t,'employeeId'), name: gt(t,'name'),
   }));
 }
 
-/* ══════════════════════════════════════════
-   下拉選單渲染
-══════════════════════════════════════════ */
+/* ════════════════════════════════
+   儲存
+════════════════════════════════ */
+function saveRequesters() { localStorage.setItem('xml_requesters', buildRequestersXML()); }
+function saveTesters()    { localStorage.setItem('xml_testers',    buildTestersXML()); }
+function saveRecords()    { localStorage.setItem('test_records', JSON.stringify(records)); }
+
+/* ════════════════════════════════
+   下拉選單
+════════════════════════════════ */
 function renderDropdowns() {
-  const st = document.getElementById('sel-tester');
-  const sr = document.getElementById('sel-request');
-
-  st.innerHTML = '<option value="">── 請選擇 ──</option>';
-  sr.innerHTML = '<option value="">── 請選擇 ──</option>';
-
+  const st=document.getElementById('sel-tester'), sr=document.getElementById('sel-request');
+  const tv=st.value, rv=sr.value;
+  st.innerHTML='<option value="">── 請選擇 ──</option>';
+  sr.innerHTML='<option value="">── 請選擇 ──</option>';
   testers.forEach(t => {
-    const o = document.createElement('option');
-    o.value = t.employeeId;
-    o.textContent = `${t.employeeId}  ${t.name}`;
-    st.appendChild(o);
+    const o=document.createElement('option');
+    o.value=t.employeeId; o.textContent=`${t.employeeId}  ${t.name}`;
+    if(t.employeeId===tv) o.selected=true; st.appendChild(o);
   });
-
   requesters.forEach(r => {
-    const o = document.createElement('option');
-    o.value = r.requestId;
-    o.textContent = `${r.requestId}  ${r.name}`;
-    sr.appendChild(o);
+    const o=document.createElement('option');
+    o.value=r.requestId; o.textContent=`${r.requestId}  ${r.name}`;
+    if(r.requestId===rv) o.selected=true; sr.appendChild(o);
   });
+  onRequestChange();
 }
 
-/* 選擇需求者時，顯示資訊卡 */
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('sel-request').addEventListener('change', onRequestChange);
-  document.getElementById('sel-tester').addEventListener('change', checkReady);
-});
-
 function onRequestChange() {
-  const id = document.getElementById('sel-request').value;
-  const card = document.getElementById('req-info-card');
-
-  if (!id) {
-    card.classList.add('hidden');
-    checkReady();
-    return;
-  }
-
-  const req = requesters.find(r => r.requestId === id);
+  const id=document.getElementById('sel-request').value;
+  const card=document.getElementById('req-info-card');
+  if (!id) { card.classList.add('hidden'); checkReady(); return; }
+  const req=requesters.find(r=>r.requestId===id);
   if (!req) return;
-
-  document.getElementById('info-name').value = req.name;
-  document.getElementById('info-addr').value = req.address;
-  document.getElementById('info-lat').value  = req.latitude.toFixed(6);
-  document.getElementById('info-lon').value  = req.longitude.toFixed(6);
+  document.getElementById('info-name').value  = req.name;
+  document.getElementById('info-addr').value  = req.address;
+  document.getElementById('info-lat').value   = req.latitude.toFixed(6);
+  document.getElementById('info-lon').value   = req.longitude.toFixed(6);
+  document.getElementById('info-threshold').textContent = req.distanceThreshold + ' 公尺';
   card.classList.remove('hidden');
-
   checkReady();
 }
 
 function checkReady() {
-  const tOk = document.getElementById('sel-tester').value !== '';
-  const rOk = document.getElementById('sel-request').value !== '';
-  const btn  = document.getElementById('punch-btn');
+  const ok = document.getElementById('sel-tester').value!=='' && document.getElementById('sel-request').value!=='';
+  document.getElementById('punch-btn').disabled = !ok;
   const stat = document.getElementById('punch-status');
-
-  if (tOk && rOk) {
-    btn.disabled = false;
-    stat.textContent = '就緒 ── 請移至目標位置後按下「立即打卡」';
-    stat.className = 'status-bar ok';
-  } else {
-    btn.disabled = true;
-    stat.textContent = '請先選擇測試者與需求者編號';
-    stat.className = 'status-bar';
-  }
-  // 重置結果顯示
-  document.getElementById('result-area').innerHTML = '<div class="result-badge pending">尚未打卡</div>';
-  document.getElementById('meters').style.display = 'none';
+  if (ok) { stat.textContent='就緒 ── 請移至目標位置後按下「立即打卡」'; stat.className='status-bar ok'; }
+  else    { stat.textContent='請先選擇測試者與需求者編號'; stat.className='status-bar'; }
+  document.getElementById('result-area').innerHTML='<div class="result-badge pending">尚未打卡</div>';
+  document.getElementById('meters').classList.add('hidden');
 }
 
-/* ══════════════════════════════════════════
-   Haversine 距離計算（公尺）
-   類比：把地球展平成一張紙算兩點距離，
-         再用 cos(緯度) 修正東西向縮短比例
-══════════════════════════════════════════ */
-function haversineDistance(lat1, lon1, lat2, lon2) {
-  const R     = 6371000; // 地球半徑（公尺）
-  const toRad = d => d * Math.PI / 180;
-  const dLat  = toRad(lat2 - lat1);
-  const dLon  = toRad(lon2 - lon1);
-  const a = Math.sin(dLat / 2) ** 2 +
-            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+/* ════════════════════════════════
+   Haversine
+════════════════════════════════ */
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371000, r=d=>d*Math.PI/180;
+  const a=Math.sin(r(lat2-lat1)/2)**2+Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(r(lon2-lon1)/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-/* ══════════════════════════════════════════
-   打卡主流程
-══════════════════════════════════════════ */
+/* ════════════════════════════════
+   打卡
+════════════════════════════════ */
 function doPunch() {
-  const btn   = document.getElementById('punch-btn');
-  const stat  = document.getElementById('punch-status');
-
-  btn.disabled = true;
-  stat.innerHTML = '<span class="spinner"></span>  正在取得 GPS 座標…';
-  stat.className = 'status-bar';
-
+  const btn=document.getElementById('punch-btn'), stat=document.getElementById('punch-status');
+  btn.disabled=true;
+  stat.innerHTML='<span class="spinner"></span>  正在取得 GPS 座標…';
+  stat.className='status-bar';
   if (!navigator.geolocation) {
-    stat.textContent = '❌ 此瀏覽器不支援 GPS 定位';
-    stat.className = 'status-bar err';
-    btn.disabled = false;
-    return;
+    stat.textContent='❌ 此瀏覽器不支援 GPS 定位'; stat.className='status-bar err';
+    btn.disabled=false; return;
   }
-
-  navigator.geolocation.getCurrentPosition(
-    pos => onGotPosition(pos),
-    err => onGeoError(err),
-    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-  );
+  navigator.geolocation.getCurrentPosition(onGotPosition, onGeoError, { enableHighAccuracy:true, timeout:15000, maximumAge:0 });
 }
 
 function onGotPosition(pos) {
-  const myLat = pos.coords.latitude;
-  const myLon = pos.coords.longitude;
-
-  // 取得目標需求者
-  const reqId = document.getElementById('sel-request').value;
-  const req   = requesters.find(r => r.requestId === reqId);
-
-  // 計算距離
-  const dist = haversineDistance(myLat, myLon, req.latitude, req.longitude);
-  const arrived = dist <= ARRIVE_THRESHOLD_M;
-
-  // 取得當前日期時間
-  const now       = new Date();
-  const dateStr   = formatDate(now);   // YYYY-MM-DD
-  const timeStr   = formatTime(now);   // HH:MM:SS
-  const dateKey   = dateStr.replace(/-/g, ''); // YYYYMMDD
-  const recordId  = genSerial(dateKey);
-
-  // 組記錄物件
-  const record = {
-    recordId,
-    requestId:   reqId,
-    testerId:    document.getElementById('sel-tester').value,
-    testDate:    dateStr,
-    testTime:    timeStr,
-    myLatitude:  myLat,
-    myLongitude: myLon,
-    distance:    parseFloat(dist.toFixed(2)),
-    arrived,
-  };
-
-  // 儲存
-  records.push(record);
+  const myLat=pos.coords.latitude, myLon=pos.coords.longitude;
+  const reqId=document.getElementById('sel-request').value;
+  const req=requesters.find(r=>r.requestId===reqId);
+  const dist=haversine(myLat,myLon,req.latitude,req.longitude);
+  const thresh=req.distanceThreshold;
+  const arrived=dist<=thresh;
+  const now=new Date(), dateStr=formatDate(now), timeStr=formatTime(now);
+  const dk=dateStr.replace(/-/g,'');
+  const recordId=genSerial(dk);
+  records.push({ recordId, requestId:reqId, testerId:document.getElementById('sel-tester').value, testDate:dateStr, testTime:timeStr, myLatitude:myLat, myLongitude:myLon, distance:parseFloat(dist.toFixed(2)), threshold:thresh, arrived });
   saveRecords();
-
-  // 更新 UI
-  showResult(arrived, dist, myLat, myLon, timeStr);
-
-  const stat = document.getElementById('punch-status');
-  stat.textContent = `✅ 已記錄  ──  記錄編號：${recordId}`;
-  stat.className = 'status-bar ok';
-
-  document.getElementById('punch-btn').disabled = false;
+  showResult(arrived, dist, thresh, myLat, myLon, timeStr);
+  const stat=document.getElementById('punch-status');
+  stat.textContent=`✅ 已記錄  ──  記錄編號：${recordId}`; stat.className='status-bar ok';
+  document.getElementById('punch-btn').disabled=false;
 }
 
 function onGeoError(err) {
-  const stat = document.getElementById('punch-status');
-  const msgs = {
-    1: '❌ 使用者拒絕位置存取，請在瀏覽器設定中允許。',
-    2: '❌ GPS 訊號無法取得，請移至空曠處再試。',
-    3: '❌ GPS 取得逾時，請重試。',
-  };
-  stat.textContent = msgs[err.code] || '❌ GPS 發生未知錯誤';
-  stat.className = 'status-bar err';
-  document.getElementById('punch-btn').disabled = false;
+  const msgs={1:'使用者拒絕位置存取，請在瀏覽器設定中允許。',2:'GPS 訊號無法取得，請移至空曠處再試。',3:'GPS 取得逾時，請重試。'};
+  const stat=document.getElementById('punch-status');
+  stat.textContent='❌ '+(msgs[err.code]||'GPS 發生未知錯誤'); stat.className='status-bar err';
+  document.getElementById('punch-btn').disabled=false;
 }
 
-function showResult(arrived, dist, lat, lon, time) {
-  const area = document.getElementById('result-area');
-  const cls  = arrived ? 'arrived' : 'not-arr';
-  const txt  = arrived ? '✔ 已到達' : '✘ 未到達';
-  area.innerHTML = `<div class="result-badge ${cls}">${txt}</div>
-    <p style="font-size:0.8rem;color:var(--muted);margin-bottom:10px">
-      判定閾值：${ARRIVE_THRESHOLD_M} 公尺以內視為到達
-    </p>`;
-
-  // 儀表板數值
-  document.getElementById('m-dist').textContent  = dist.toFixed(1);
-  document.getElementById('m-mylat').textContent = lat.toFixed(6);
-  document.getElementById('m-mylon').textContent = lon.toFixed(6);
-  document.getElementById('m-time').textContent  = time;
-
-  const meters = document.getElementById('meters');
-  meters.style.display = 'flex';
-  // 距離顏色
-  document.getElementById('m-dist').style.color =
-    arrived ? 'var(--accent)' : 'var(--danger)';
+function showResult(arrived, dist, thresh, lat, lon, time) {
+  const cls=arrived?'arrived':'not-arr', txt=arrived?'✔ 已到達':'✘ 未到達';
+  document.getElementById('result-area').innerHTML=
+    `<div class="result-badge ${cls}">${txt}</div>
+     <p class="text-muted" style="margin-bottom:10px">閾值：${thresh}m ／ 實際距離：${dist.toFixed(1)}m</p>`;
+  document.getElementById('m-dist').textContent   = dist.toFixed(1);
+  document.getElementById('m-thresh').textContent = thresh;
+  document.getElementById('m-mylat').textContent  = lat.toFixed(6);
+  document.getElementById('m-mylon').textContent  = lon.toFixed(6);
+  document.getElementById('m-time').textContent   = time;
+  document.getElementById('m-dist').style.color   = arrived?'var(--accent)':'var(--danger)';
+  document.getElementById('meters').classList.remove('hidden');
 }
 
-/* ══════════════════════════════════════════
-   日期 / 時間 / 流水號工具
-══════════════════════════════════════════ */
-function formatDate(d) {
-  return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
-}
-function formatTime(d) {
-  return `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
-}
-function p2(n) { return String(n).padStart(2, '0'); }
-
-function genSerial(dateKey) {
-  serialMap[dateKey] = (serialMap[dateKey] || 0) + 1;
-  return dateKey + String(serialMap[dateKey]).padStart(3, '0');
-}
-
-/* ══════════════════════════════════════════
-   記錄列表渲染
-══════════════════════════════════════════ */
+/* ════════════════════════════════
+   記錄列表
+════════════════════════════════ */
 function renderRecords() {
-  const tbody = document.getElementById('records-tbody');
-  if (records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">尚無記錄</td></tr>';
-    return;
+  const tbody=document.getElementById('records-tbody');
+  if (!records.length) {
+    tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:20px">尚無記錄</td></tr>'; return;
   }
-  tbody.innerHTML = [...records].reverse().map(r => {
-    const tester = testers.find(t => t.employeeId === r.testerId);
-    const tName  = tester ? tester.name : r.testerId;
-    const cls    = r.arrived ? 'badge-ok' : 'badge-ng';
-    const txt    = r.arrived ? '✔ 到達' : '✘ 未到達';
+  tbody.innerHTML=[...records].reverse().map(r => {
+    const t=testers.find(t=>t.employeeId===r.testerId);
+    const cls=r.arrived?'badge-ok':'badge-ng', txt=r.arrived?'✔ 到達':'✘ 未到達';
     return `<tr>
-      <td>${r.recordId}</td>
-      <td>${r.testerId} ${tName}</td>
-      <td>${r.requestId}</td>
-      <td>${r.testDate}</td>
-      <td>${r.testTime}</td>
-      <td>${r.distance}</td>
-      <td class="${cls}">${txt}</td>
-    </tr>`;
+      <td class="mono">${r.recordId}</td>
+      <td>${r.testerId}${t?' '+t.name:''}</td>
+      <td class="mono">${r.requestId}</td>
+      <td class="mono">${r.testDate}</td>
+      <td class="mono">${r.testTime}</td>
+      <td class="mono">${r.distance}</td>
+      <td class="mono">${r.threshold??15}</td>
+      <td class="${cls}">${txt}</td></tr>`;
   }).join('');
 }
-
 function clearRecords() {
   if (!confirm('確定要清除所有測試記錄？')) return;
-  records = [];
-  serialMap = {};
-  saveRecords();
-  renderRecords();
+  records=[]; serialMap={}; saveRecords(); renderRecords();
 }
 
-function saveRecords() {
-  localStorage.setItem('test_records', JSON.stringify(records));
+/* ════════════════════════════════
+   需求者 CRUD
+════════════════════════════════ */
+function renderRequesterTable() {
+  const tbody=document.getElementById('req-tbody');
+  if (!requesters.length) {
+    tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:20px">尚無資料</td></tr>'; return;
+  }
+  tbody.innerHTML=requesters.map(r=>`
+    <tr>
+      <td class="mono">${r.requestId}</td>
+      <td>${r.name}</td>
+      <td style="max-width:160px;font-size:0.75rem">${r.address}</td>
+      <td class="mono" style="font-size:0.75rem">${r.homePhone||'─'}</td>
+      <td class="mono" style="font-size:0.75rem">${r.mobile||'─'}</td>
+      <td class="mono">${r.latitude.toFixed(5)}</td>
+      <td class="mono">${r.longitude.toFixed(5)}</td>
+      <td><span class="threshold-badge">${r.distanceThreshold}m</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-xs" onclick="openRequesterModal('${r.requestId}')">✏ 編輯</button>
+        <button class="btn btn-ghost-r btn-xs" style="margin-top:3px" onclick="deleteRequester('${r.requestId}')">🗑 刪除</button>
+      </td>
+    </tr>`).join('');
 }
 
-/* ══════════════════════════════════════════
-   XML 資料管理（套用 / 還原）
-══════════════════════════════════════════ */
-function applyXML(type) {
-  const textarea = document.getElementById(`xml-${type}`);
-  const status   = document.getElementById(`status-${type}`);
+function openRequesterModal(id) {
+  editingReqId=id;
+  const isNew=!id;
+  document.getElementById('modal-req-title').textContent = isNew?'▸ 新增需求者':'▸ 編輯需求者';
+  setStatus('modal-req-status','','');
+  setStatus('geo-status','輸入完整地址後按「查座標」，系統將自動填入經緯度','');
+
+  if (isNew) {
+    const dk=formatDate(new Date()).replace(/-/g,'');
+    const nextN=String((serialMap[dk]||0)+1).padStart(3,'0');
+    document.getElementById('req-f-id').value        = dk+nextN;
+    document.getElementById('req-f-id').readOnly     = false;
+    document.getElementById('req-f-name').value      = '';
+    document.getElementById('req-f-addr').value      = '';
+    document.getElementById('req-f-lat').value       = '';
+    document.getElementById('req-f-lon').value       = '';
+    document.getElementById('req-f-home').value      = '';
+    document.getElementById('req-f-mobile').value    = '';
+    document.getElementById('req-f-threshold').value = '15';
+  } else {
+    const r=requesters.find(x=>x.requestId===id);
+    document.getElementById('req-f-id').value        = r.requestId;
+    document.getElementById('req-f-id').readOnly     = true;
+    document.getElementById('req-f-name').value      = r.name;
+    document.getElementById('req-f-addr').value      = r.address;
+    document.getElementById('req-f-lat').value       = r.latitude;
+    document.getElementById('req-f-lon').value       = r.longitude;
+    document.getElementById('req-f-home').value      = r.homePhone;
+    document.getElementById('req-f-mobile').value    = r.mobile;
+    document.getElementById('req-f-threshold').value = r.distanceThreshold;
+  }
+  document.getElementById('modal-requester').classList.add('open');
+}
+
+function saveRequester() {
+  const id    =document.getElementById('req-f-id').value.trim();
+  const name  =document.getElementById('req-f-name').value.trim();
+  const addr  =document.getElementById('req-f-addr').value.trim();
+  const lat   =parseFloat(document.getElementById('req-f-lat').value);
+  const lon   =parseFloat(document.getElementById('req-f-lon').value);
+  const home  =document.getElementById('req-f-home').value.trim();
+  const mobile=document.getElementById('req-f-mobile').value.trim();
+  const thresh=parseFloat(document.getElementById('req-f-threshold').value)||15;
+  if (!id)          { setStatus('modal-req-status','⚠ 需求編號不可空白','err'); return; }
+  if (!name)        { setStatus('modal-req-status','⚠ 姓名不可空白','err'); return; }
+  if (isNaN(lat)||lat===0) { setStatus('modal-req-status','⚠ 緯度無效，請先查詢或手動填寫座標','err'); return; }
+  if (isNaN(lon)||lon===0) { setStatus('modal-req-status','⚠ 經度無效，請先查詢或手動填寫座標','err'); return; }
+  const isNew=!editingReqId;
+  if (isNew && requesters.find(r=>r.requestId===id)) { setStatus('modal-req-status','⚠ 此需求編號已存在','err'); return; }
+  const obj={ requestId:id, name, address:addr, mobile, homePhone:home, longitude:lon, latitude:lat, distanceThreshold:thresh };
+  if (isNew) { requesters.push(obj); }
+  else { const idx=requesters.findIndex(r=>r.requestId===editingReqId); requesters[idx]=obj; }
+  saveRequesters(); renderRequesterTable(); renderDropdowns();
+  setStatus('modal-req-status', isNew?'✅ 新增成功！':'✅ 更新成功！', 'ok');
+  setTimeout(()=>closeModal('modal-requester'), 900);
+}
+
+function deleteRequester(id) {
+  const r=requesters.find(x=>x.requestId===id);
+  if (!confirm(`確定刪除「${r.name}」（${id}）？此操作不可復原。`)) return;
+  requesters=requesters.filter(x=>x.requestId!==id);
+  saveRequesters(); renderRequesterTable(); renderDropdowns();
+}
+
+/* ════════════════════════════════
+   測試者 CRUD
+════════════════════════════════ */
+function renderTesterTable() {
+  const tbody=document.getElementById('tester-tbody');
+  if (!testers.length) {
+    tbody.innerHTML='<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px">尚無資料</td></tr>'; return;
+  }
+  tbody.innerHTML=testers.map(t=>`
+    <tr>
+      <td class="mono">${t.employeeId}</td>
+      <td>${t.name}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-xs" onclick="openTesterModal('${t.employeeId}')">✏ 編輯</button>
+        <button class="btn btn-ghost-r btn-xs" style="margin-left:6px" onclick="deleteTester('${t.employeeId}')">🗑 刪除</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openTesterModal(id) {
+  editingTstId=id;
+  const isNew=!id;
+  document.getElementById('modal-tst-title').textContent = isNew?'▸ 新增測試者':'▸ 編輯測試者';
+  setStatus('modal-tst-status','','');
+  if (isNew) {
+    document.getElementById('tst-f-id').value='';
+    document.getElementById('tst-f-name').value='';
+    document.getElementById('tst-f-id').readOnly=false;
+  } else {
+    const t=testers.find(x=>x.employeeId===id);
+    document.getElementById('tst-f-id').value=t.employeeId;
+    document.getElementById('tst-f-name').value=t.name;
+    document.getElementById('tst-f-id').readOnly=true;
+  }
+  document.getElementById('modal-tester').classList.add('open');
+}
+
+function saveTester() {
+  const id  =document.getElementById('tst-f-id').value.trim();
+  const name=document.getElementById('tst-f-name').value.trim();
+  if (!id)   { setStatus('modal-tst-status','⚠ 員工編號不可空白','err'); return; }
+  if (!name) { setStatus('modal-tst-status','⚠ 姓名不可空白','err'); return; }
+  const isNew=!editingTstId;
+  if (isNew && testers.find(t=>t.employeeId===id)) { setStatus('modal-tst-status','⚠ 此員工編號已存在','err'); return; }
+  if (isNew) { testers.push({employeeId:id, name}); }
+  else { const idx=testers.findIndex(t=>t.employeeId===editingTstId); testers[idx]={employeeId:id, name}; }
+  saveTesters(); renderTesterTable(); renderDropdowns();
+  setStatus('modal-tst-status', isNew?'✅ 新增成功！':'✅ 更新成功！', 'ok');
+  setTimeout(()=>closeModal('modal-tester'), 900);
+}
+
+function deleteTester(id) {
+  const t=testers.find(x=>x.employeeId===id);
+  if (!confirm(`確定刪除「${t.name}」（${id}）？`)) return;
+  testers=testers.filter(x=>x.employeeId!==id);
+  saveTesters(); renderTesterTable(); renderDropdowns();
+}
+
+/* ════════════════════════════════
+   地址自動查座標（OpenStreetMap Nominatim）
+   類比：把地址交給免費郵差，他回傳 GPS 釘
+════════════════════════════════ */
+async function geocodeAddress() {
+  const addr=document.getElementById('req-f-addr').value.trim();
+  const stat=document.getElementById('geo-status');
+  const btn=document.getElementById('geo-btn');
+  if (!addr) { setStatus('geo-status','⚠ 請先輸入地址','err'); return; }
+  btn.disabled=true;
+  stat.innerHTML='<span class="spinner"></span>  查詢中…';
+  stat.className='status-bar';
   try {
-    if (type === 'requesters') {
-      parseRequesters(textarea.value);
-      localStorage.setItem('xml_requesters', textarea.value);
-    } else {
-      parseTesters(textarea.value);
-      localStorage.setItem('xml_testers', textarea.value);
+    // 加上 Taiwan 提高台灣地址辨識率
+    const q=encodeURIComponent(addr.includes('台')||addr.includes('臺') ? addr+' Taiwan' : addr);
+    const url=`https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=3&countrycodes=tw`;
+    const res=await fetch(url, { headers:{'User-Agent':'GPS-ArrivalTest/2.0'} });
+    const data=await res.json();
+    if (!data||!data.length) {
+      // 找不到時再試不加 Taiwan
+      const url2=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(addr)}&format=json&limit=3`;
+      const res2=await fetch(url2, { headers:{'User-Agent':'GPS-ArrivalTest/2.0'} });
+      const data2=await res2.json();
+      if (!data2||!data2.length) {
+        setStatus('geo-status','❌ 找不到此地址，請調整後重試（建議加上縣市名）','err');
+        btn.disabled=false; return;
+      }
+      fillCoords(data2[0]); return;
     }
-    renderDropdowns();
-    status.textContent = '✅ 套用成功，下拉選單已更新';
-    status.className = 'status-bar ok';
+    fillCoords(data[0]);
   } catch(e) {
-    status.textContent = '❌ ' + e.message;
-    status.className = 'status-bar err';
+    setStatus('geo-status','❌ 網路錯誤：'+e.message,'err');
   }
+  btn.disabled=false;
 }
 
-function resetXML(type) {
-  if (!confirm('確定要還原為預設資料？')) return;
-  const textarea = document.getElementById(`xml-${type}`);
-  if (type === 'requesters') {
-    textarea.value = DEFAULT_REQUESTERS_XML;
-    localStorage.removeItem('xml_requesters');
-    parseRequesters(DEFAULT_REQUESTERS_XML);
-  } else {
-    textarea.value = DEFAULT_TESTERS_XML;
-    localStorage.removeItem('xml_testers');
-    parseTesters(DEFAULT_TESTERS_XML);
-  }
-  renderDropdowns();
-  document.getElementById(`status-${type}`).textContent = '已還原預設值，請按「套用」確認';
-  document.getElementById(`status-${type}`).className = 'status-bar';
+function fillCoords(result) {
+  const lat=parseFloat(result.lat).toFixed(6);
+  const lon=parseFloat(result.lon).toFixed(6);
+  document.getElementById('req-f-lat').value=lat;
+  document.getElementById('req-f-lon').value=lon;
+  const dispName=result.display_name||'';
+  setStatus('geo-status',`✅ 緯度 ${lat}  /  經度 ${lon}\n${dispName.substring(0,80)}${dispName.length>80?'…':''}`, 'ok');
+  document.getElementById('geo-btn').disabled=false;
 }
 
-/* ══════════════════════════════════════════
-   匯出 XML
-══════════════════════════════════════════ */
-function exportXML(type) {
-  let xmlStr = '', filename = '';
-
-  if (type === 'records') {
-    xmlStr = buildRecordsXML();
-    filename = 'test_records.xml';
-    document.getElementById('preview-xml').value = xmlStr;
-  } else if (type === 'requesters') {
-    xmlStr = document.getElementById('xml-requesters').value;
-    filename = 'requesters.xml';
-  } else {
-    xmlStr = document.getElementById('xml-testers').value;
-    filename = 'testers.xml';
-  }
-
-  const blob = new Blob([xmlStr], { type: 'application/xml;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-
-  const stat = document.getElementById('status-export');
-  stat.textContent = `✅ ${filename} 已下載`;
-  stat.className = 'status-bar ok';
+/* ════════════════════════════════
+   XML 建構
+════════════════════════════════ */
+function buildRequestersXML() {
+  const I='    ';
+  const rows=requesters.map(r=>[
+    `  <requester>`,
+    `${I}<requestId>${r.requestId}</requestId>`,
+    `${I}<name>${r.name}</name>`,
+    `${I}<address>${r.address}</address>`,
+    `${I}<mobile>${r.mobile}</mobile>`,
+    `${I}<homePhone>${r.homePhone}</homePhone>`,
+    `${I}<longitude>${r.longitude}</longitude>`,
+    `${I}<latitude>${r.latitude}</latitude>`,
+    `${I}<distanceThreshold>${r.distanceThreshold}</distanceThreshold>`,
+    `  </requester>`,
+  ].join('\n')).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<requesters>\n${rows}\n</requesters>`;
 }
-
-/* 將記錄陣列轉為標準 XML 字串 */
+function buildTestersXML() {
+  const I='    ';
+  const rows=testers.map(t=>[
+    `  <tester>`,
+    `${I}<employeeId>${t.employeeId}</employeeId>`,
+    `${I}<name>${t.name}</name>`,
+    `  </tester>`,
+  ].join('\n')).join('\n');
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<testers>\n${rows}\n</testers>`;
+}
 function buildRecordsXML() {
-  const indent = '  ';
-  const rows = records.map(r => {
-    const arrived = r.arrived ? 'true' : 'false';
-    return [
-      `${indent}<record>`,
-      `${indent}${indent}<recordId>${r.recordId}</recordId>`,
-      `${indent}${indent}<requestId>${r.requestId}</requestId>`,
-      `${indent}${indent}<testerId>${r.testerId}</testerId>`,
-      `${indent}${indent}<testDate>${r.testDate}</testDate>`,
-      `${indent}${indent}<testTime>${r.testTime}</testTime>`,
-      `${indent}${indent}<myLatitude>${r.myLatitude.toFixed(6)}</myLatitude>`,
-      `${indent}${indent}<myLongitude>${r.myLongitude.toFixed(6)}</myLongitude>`,
-      `${indent}${indent}<distance unit="m">${r.distance}</distance>`,
-      `${indent}${indent}<arrived>${arrived}</arrived>`,
-      `${indent}</record>`,
-    ].join('\n');
-  }).join('\n');
-
+  const I='    ';
+  const rows=records.map(r=>[
+    `  <record>`,
+    `${I}<recordId>${r.recordId}</recordId>`,
+    `${I}<requestId>${r.requestId}</requestId>`,
+    `${I}<testerId>${r.testerId}</testerId>`,
+    `${I}<testDate>${r.testDate}</testDate>`,
+    `${I}<testTime>${r.testTime}</testTime>`,
+    `${I}<myLatitude>${r.myLatitude.toFixed(6)}</myLatitude>`,
+    `${I}<myLongitude>${r.myLongitude.toFixed(6)}</myLongitude>`,
+    `${I}<distance unit="m">${r.distance}</distance>`,
+    `${I}<threshold unit="m">${r.threshold??15}</threshold>`,
+    `${I}<arrived>${r.arrived}</arrived>`,
+    `  </record>`,
+  ].join('\n')).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<testRecords>\n${rows}\n</testRecords>`;
 }
 
-/* ══════════════════════════════════════════
-   Tab 切換
-══════════════════════════════════════════ */
-function switchTab(id) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  event.currentTarget.classList.add('active');
-
-  if (id === 'tab-records') renderRecords();
-  if (id === 'tab-export')  {
-    document.getElementById('preview-xml').value = buildRecordsXML();
-  }
+/* ════════════════════════════════
+   匯出
+════════════════════════════════ */
+function exportXML(type) {
+  let xml='', name='';
+  if (type==='records')    { xml=buildRecordsXML();    name='test_records.xml';  document.getElementById('preview-xml').value=xml; }
+  if (type==='requesters') { xml=buildRequestersXML(); name='requesters.xml'; }
+  if (type==='testers')    { xml=buildTestersXML();    name='testers.xml'; }
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([xml],{type:'application/xml;charset=utf-8'}));
+  a.download=name; a.click();
+  setStatus('status-export','✅ '+name+' 已下載','ok');
 }
 
-/* ── 啟動 ── */
+/* ════════════════════════════════
+   工具函式
+════════════════════════════════ */
+function formatDate(d) { return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; }
+function formatTime(d) { return `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`; }
+function p2(n) { return String(n).padStart(2,'0'); }
+function genSerial(dk) { serialMap[dk]=(serialMap[dk]||0)+1; return dk+String(serialMap[dk]).padStart(3,'0'); }
+function setStatus(id, msg, cls) {
+  const el=document.getElementById(id);
+  el.textContent=msg; el.className='status-bar'+(cls?' '+cls:'');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active'); btn.classList.add('active');
+  if(id==='tab-records')    renderRecords();
+  if(id==='tab-requesters') renderRequesterTable();
+  if(id==='tab-testers')    renderTesterTable();
+  if(id==='tab-export')     document.getElementById('preview-xml').value=buildRecordsXML();
+}
+
 init();
 </script>
 </body>
