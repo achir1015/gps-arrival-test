@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GPS 到達測試系統 v2</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;500;700&display=swap');
 
@@ -130,32 +128,31 @@
   .map-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
   .map-btn-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
   .map-tab-btn {
-    flex: 1; padding: 10px 8px; border: none; background: transparent;
+    flex: 1; padding: 11px 8px; border: none; background: transparent;
     color: var(--muted); cursor: pointer; font-family: var(--sans);
-    font-size: 0.82rem; font-weight: 500; transition: all .2s;
+    font-size: 0.84rem; font-weight: 500; transition: all .2s;
     border-bottom: 3px solid transparent;
   }
-  .map-tab-btn.active { color: var(--accent); background: rgba(0,212,170,.06); border-bottom-color: var(--accent); }
-  .map-tab-btn:hover:not(.active) { color: var(--text); background: rgba(255,255,255,.04); }
-  .map-tab-btn:disabled { opacity: .4; cursor: not-allowed; }
-  #map-container {
-    width: 100%; height: 280px; position: relative;
+  .map-tab-btn.active { color: var(--accent); background: rgba(0,212,170,.07); border-bottom-color: var(--accent); }
+  .map-tab-btn:hover  { color: var(--text); background: rgba(255,255,255,.04); }
+  .map-info-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 7px 12px; background: var(--bg); border-bottom: 1px solid var(--border);
+    font-size: 0.76rem; color: var(--muted); gap: 8px; flex-wrap: wrap;
   }
-  #punch-map { width: 100%; height: 100%; }
-  .map-hint {
-    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 8px;
-    background: rgba(13,17,23,.85); color: var(--muted); font-size: 0.82rem; z-index: 10;
-    pointer-events: none;
+  .map-info-bar span { font-family: var(--mono); }
+  .map-info-bar .open-btn {
+    padding: 4px 10px; font-size: 0.74rem; border-radius: 5px;
+    background: transparent; color: var(--accent); border: 1px solid var(--accent);
+    cursor: pointer; white-space: nowrap; text-decoration: none; display: inline-block;
   }
-  .map-hint.hidden { display: none; }
-  .map-hint .hint-icon { font-size: 2rem; }
-  /* Leaflet popup 深色主題 */
-  .leaflet-popup-content-wrapper { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
-  .leaflet-popup-tip { background: var(--surface); }
-  .leaflet-popup-content { font-family: var(--sans); font-size: 0.82rem; line-height: 1.5; }
-  .pop-title { font-weight: 700; color: var(--accent); margin-bottom: 4px; }
-  .pop-row   { color: var(--muted); }
+  #map-placeholder {
+    width: 100%; height: 300px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 10px;
+    background: var(--bg); color: var(--muted); font-size: 0.82rem;
+  }
+  #map-placeholder .ph-icon { font-size: 2.4rem; }
+  #map-frame { width: 100%; height: 300px; border: none; display: none; }
 </style>
 </head>
 <body>
@@ -222,20 +219,24 @@
   <!-- ══ 地圖區塊 ══ -->
   <div class="map-card" id="map-card">
     <div class="map-btn-bar">
-      <button class="map-tab-btn" id="btn-map-req" disabled onclick="showMapReq()">
+      <button class="map-tab-btn" id="btn-map-req" onclick="showMapReq()">
         📍 需求者位置
       </button>
-      <button class="map-tab-btn" id="btn-map-tester" disabled onclick="showMapTester()">
-        🧭 測試者位置
+      <button class="map-tab-btn" id="btn-map-tester" onclick="showMapTester()">
+        🧭 測試者位置（打卡後）
       </button>
     </div>
-    <div id="map-container">
-      <div class="map-hint" id="map-hint">
-        <span class="hint-icon">🗺</span>
-        <span>選擇需求者編號後，按上方按鈕顯示地圖</span>
-      </div>
-      <div id="punch-map"></div>
+    <!-- 座標資訊列 + 開啟地圖連結 -->
+    <div class="map-info-bar" id="map-info-bar" style="display:none">
+      <span id="map-info-text">─</span>
+      <a id="map-open-link" href="#" target="_blank" class="open-btn">🔗 開啟 Google Maps</a>
     </div>
+    <!-- 地圖顯示區：預設顯示提示，載入後換成 iframe -->
+    <div id="map-placeholder">
+      <span class="ph-icon">🗺</span>
+      <span id="ph-text">請先按上方按鈕選擇要查看的位置</span>
+    </div>
+    <iframe id="map-frame" allowfullscreen loading="lazy"></iframe>
   </div>
 </div>
 
@@ -1008,6 +1009,115 @@ function switchTab(id, btn) {
   if(id==='tab-requesters') renderRequesterTable();
   if(id==='tab-testers')    renderTesterTable();
   if(id==='tab-export')     document.getElementById('preview-xml').value=buildRecordsXML();
+}
+
+/* ════════════════════════════════
+   地圖功能（iframe + OpenStreetMap）
+   不依賴任何外部 JS 函式庫
+════════════════════════════════ */
+let lastTesterPos = null; // 打卡後儲存的測試者座標 { lat, lon }
+let mapMode       = null; // 'req' | 'tester'
+
+/* 顯示 OSM 嵌入地圖 */
+function showMap(lat, lon, label) {
+  const delta = 0.003; // 約 300 公尺視野
+  const bbox  = `${lon-delta},${lat-delta},${lon+delta},${lat+delta}`;
+  const src   = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lon}`;
+
+  const ph       = document.getElementById('map-placeholder');
+  const frame    = document.getElementById('map-frame');
+  const infoBar  = document.getElementById('map-info-bar');
+  const infoText = document.getElementById('map-info-text');
+  const openLink = document.getElementById('map-open-link');
+
+  // 顯示載入中提示
+  ph.style.display = 'flex';
+  document.getElementById('ph-text').textContent = '⏳ 地圖載入中…';
+  frame.style.display = 'none';
+
+  // iframe 載入完成後切換顯示
+  frame.onload = function() {
+    ph.style.display   = 'none';
+    frame.style.display = 'block';
+  };
+  frame.src = src;
+
+  // 更新資訊列
+  infoBar.style.display = 'flex';
+  infoText.textContent  = `${label}　緯度 ${lat.toFixed(5)}　經度 ${lon.toFixed(5)}`;
+  openLink.href         = `https://www.google.com/maps?q=${lat},${lon}`;
+}
+
+/* 顯示提示（清除地圖） */
+function showMapHint(msg) {
+  const ph    = document.getElementById('map-placeholder');
+  const frame = document.getElementById('map-frame');
+  ph.style.display    = 'flex';
+  frame.style.display = 'none';
+  frame.src           = 'about:blank';
+  document.getElementById('ph-text').textContent = msg;
+  document.getElementById('map-info-bar').style.display = 'none';
+}
+
+/* 按鈕：顯示需求者位置 */
+function showMapReq() {
+  document.querySelectorAll('.map-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-map-req').classList.add('active');
+  mapMode = 'req';
+
+  const reqId = document.getElementById('sel-request').value;
+  if (!reqId) { showMapHint('⚠ 請先在上方「選擇需求者編號」'); return; }
+
+  const req = requesters.find(r => r.requestId === reqId);
+  if (!req)  { showMapHint('⚠ 找不到需求者資料'); return; }
+  if (!req.latitude || req.latitude === 0) {
+    showMapHint('⚠ 此需求者尚未設定座標，請至「需求者管理」填入座標'); return;
+  }
+
+  showMap(req.latitude, req.longitude, `📍 ${req.name}`);
+}
+
+/* 按鈕：顯示測試者位置 */
+function showMapTester() {
+  document.querySelectorAll('.map-tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-map-tester').classList.add('active');
+  mapMode = 'tester';
+
+  if (lastTesterPos) {
+    // 打卡後已有座標，直接顯示
+    const tId  = document.getElementById('sel-tester').value;
+    const tObj = testers.find(t => t.employeeId === tId);
+    showMap(lastTesterPos.lat, lastTesterPos.lon,
+            `🧭 ${tObj ? tObj.name : tId}`);
+  } else {
+    // 尚未打卡，即時取得 GPS 顯示
+    showMapHint('🔍 正在取得您的 GPS 座標…');
+    if (!navigator.geolocation) {
+      showMapHint('❌ 瀏覽器不支援定位功能'); return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        lastTesterPos = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+        const tId  = document.getElementById('sel-tester').value;
+        const tObj = testers.find(t => t.employeeId === tId);
+        showMap(lastTesterPos.lat, lastTesterPos.lon,
+                `🧭 ${tObj ? tObj.name : (tId || '測試者')}`);
+      },
+      () => showMapHint('❌ GPS 定位失敗，請允許瀏覽器存取位置，或先執行打卡'),
+      { enableHighAccuracy: true, timeout: 12000 }
+    );
+  }
+}
+
+/* 打卡成功後：記錄測試者座標，若地圖在測試者模式則自動刷新 */
+function updateMapAfterPunch(lat, lon) {
+  lastTesterPos = { lat, lon };
+  if (mapMode === 'tester') showMapTester();
+}
+
+/* 換選需求者後：若地圖在需求者模式則自動刷新 */
+function updateMapBtnState() {
+  if (mapMode === 'req') showMapReq();
 }
 
 init();
