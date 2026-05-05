@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GPS 到達測試系統 v2</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Noto+Sans+TC:wght@400;500;700&display=swap');
 
@@ -123,6 +125,37 @@
   .text-muted { color: var(--muted); font-size: 0.78rem; }
   .divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
   .hidden { display: none !important; }
+
+  /* ── 地圖區塊 ── */
+  .map-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 14px; }
+  .map-btn-bar { display: flex; gap: 0; border-bottom: 1px solid var(--border); }
+  .map-tab-btn {
+    flex: 1; padding: 10px 8px; border: none; background: transparent;
+    color: var(--muted); cursor: pointer; font-family: var(--sans);
+    font-size: 0.82rem; font-weight: 500; transition: all .2s;
+    border-bottom: 3px solid transparent;
+  }
+  .map-tab-btn.active { color: var(--accent); background: rgba(0,212,170,.06); border-bottom-color: var(--accent); }
+  .map-tab-btn:hover:not(.active) { color: var(--text); background: rgba(255,255,255,.04); }
+  .map-tab-btn:disabled { opacity: .4; cursor: not-allowed; }
+  #map-container {
+    width: 100%; height: 280px; position: relative;
+  }
+  #punch-map { width: 100%; height: 100%; }
+  .map-hint {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 8px;
+    background: rgba(13,17,23,.85); color: var(--muted); font-size: 0.82rem; z-index: 10;
+    pointer-events: none;
+  }
+  .map-hint.hidden { display: none; }
+  .map-hint .hint-icon { font-size: 2rem; }
+  /* Leaflet popup 深色主題 */
+  .leaflet-popup-content-wrapper { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,.5); }
+  .leaflet-popup-tip { background: var(--surface); }
+  .leaflet-popup-content { font-family: var(--sans); font-size: 0.82rem; line-height: 1.5; }
+  .pop-title { font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .pop-row   { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -183,6 +216,25 @@
         <div class="meter"><div class="val" id="m-time">─</div><div class="lbl">打卡時間</div></div>
       </div>
       <div class="status-bar" id="punch-status">請先選擇測試者與需求者編號</div>
+    </div>
+  </div>
+
+  <!-- ══ 地圖區塊 ══ -->
+  <div class="map-card" id="map-card">
+    <div class="map-btn-bar">
+      <button class="map-tab-btn" id="btn-map-req" disabled onclick="showMapReq()">
+        📍 需求者位置
+      </button>
+      <button class="map-tab-btn" id="btn-map-tester" disabled onclick="showMapTester()">
+        🧭 測試者位置
+      </button>
+    </div>
+    <div id="map-container">
+      <div class="map-hint" id="map-hint">
+        <span class="hint-icon">🗺</span>
+        <span>選擇需求者編號後，按上方按鈕顯示地圖</span>
+      </div>
+      <div id="punch-map"></div>
     </div>
   </div>
 </div>
@@ -490,6 +542,7 @@ function onRequestChange() {
   document.getElementById('info-threshold').textContent = req.distanceThreshold + ' 公尺';
   card.classList.remove('hidden');
   checkReady();
+  updateMapBtnState();
 }
 
 function checkReady() {
@@ -538,6 +591,7 @@ function onGotPosition(pos) {
   const recordId=genSerial(dk);
   records.push({ recordId, requestId:reqId, testerId:document.getElementById('sel-tester').value, testDate:dateStr, testTime:timeStr, myLatitude:myLat, myLongitude:myLon, distance:parseFloat(dist.toFixed(2)), threshold:thresh, arrived });
   saveRecords();
+  updateMapAfterPunch(myLat, myLon);
   showResult(arrived, dist, thresh, myLat, myLon, timeStr);
   const stat=document.getElementById('punch-status');
   stat.textContent=`✅ 已記錄  ──  記錄編號：${recordId}`; stat.className='status-bar ok';
